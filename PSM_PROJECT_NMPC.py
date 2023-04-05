@@ -8,6 +8,7 @@ import numpy as np
 import scipy
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
+from pyomo.environ import *
 
 
 # ![image.png](attachment:image.png)
@@ -69,4 +70,30 @@ sol = solve_ivp(state_eqn, [0,10], (10,5,30+273,28+273), args=(20,))
 
 def NMPC():
     
+    model = ConcreteModel()
+    
+    model.x = Var(RangeSet(1, 4), within=NonNegativeReals,\
+                  bounds={(1): (0.08,.41), (2): (0, inf),
+                          (3): (0, inf), (4): (0, inf)})
+        
+    model.u = Var(RangeSet(1, 2), within=NonNegativeReals,
+                  bounds={(1): (0, 76), (2): (0, 12)})
+    
+    model.y =  Var(RangeSet(1, 2), within=NonNegativeReals, 
+                   bounds={(1): (0.08, 0.41), (2): (0, inf)})
+    
+    e_tilda = y_tilda_sp - y_tilda
 
+    model.objective = Objective(expr= np.sum(e_tilda.T @ Q_yk @ e_tilda) + \
+                                np.sum((model.u -ur).T * (Q_uk @ (model.u - ur)) \
+                                + penalty @ E))
+ 
+    model.c1 = Constraint(model.x == state_eqn(t,var,Fj) )  # use statespace discrete model/ shooting method
+    model.c2 = Constarint(model.y == y)  # use solve_ivp / shooting method
+    
+    model.c3 = Constraint(expr = u(t)==u(t_i_1_m) )# correct to t E [t_i+m, t_i+p]
+    
+    model.c5 = Constraint(expr = model.y - y_sp <= Tol)  # define Tol and y_sp as fn parameter
+    
+        
+    
