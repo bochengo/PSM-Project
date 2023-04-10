@@ -18,7 +18,7 @@ from pyomo.environ import *
 
 CA1 = 2.0
 CA2 = 10.0
-Cp, Cp_j = 4184.0, 4184.0
+Cp, Cpj = 4184.0, 4184.0
 F1 = 0
 F2, F3 = 4.0, 4.0
 Ea_R = 10080
@@ -62,7 +62,7 @@ def state_eqn(t, var, Fj):
 # In[37]:
 
 
-sol = solve_ivp(state_eqn, [0,10], (10,5,30+273,28+273), args=(20,))
+sol = solve_ivp(state_eqn, [0,10], (10,5,30+273,28+273), args=(20,)) # The initial h is much higher than the steady-state 0.3. Maybe change to 0 at initial. 
 
 
 # In[ ]:
